@@ -9,11 +9,11 @@
 
 // Pins
 #define MAIN_R 3
-#define MAIN_G 3
-#define MAIN_B 6
-#define ACC_R 9
-#define ACC_G 10
-#define ACC_B 11
+#define MAIN_G 6
+#define MAIN_B 5
+#define ACC_R 10
+#define ACC_G 11
+#define ACC_B 9
 
 // Parameters
 #define RED 0
@@ -21,9 +21,9 @@
 #define BLUE 2
 #define MAIN 0
 #define ACC 1
-int* lightning[6] = {2, 4, 7, 8, 12, 13};
-int* current_main[3] = {0, 0, 0};
-int* current_accent[3] = {0, 0, 0};
+int lightning[6] = {4, 2, 8, 7, 13, 12};
+int current_main[3] = {0, 0, 0};
+int current_accent[3] = {0, 0, 0};
 
 // Colors
 int white[3] = {255, 255, 255};
@@ -39,7 +39,10 @@ int blue_gray[3] = {73, 96, 148};
 int dark_blue[3] = {40, 63, 107};
 int yellow[3] = {252, 186, 3};
 
+int rosa[3] = {255, 30, 255};
+
 long randNumber;
+int oldVal;
 
 void setup() {
   Serial.begin(9600);
@@ -57,6 +60,7 @@ void setup() {
   pinMode(lightning[3], OUTPUT);
   pinMode(lightning[4], OUTPUT);
   pinMode(lightning[5], OUTPUT);
+  oldVal = analogRead(0);
 }
 
 void set_main(int* color){
@@ -139,32 +143,113 @@ void show_config(int val, char* msg) {
   Serial.println(msg);
 }
 
-void loop() {
-  int val = analogRead(0);    // read the value from the sensor
-  if (val >= 0 && val < 256) {
-    show_config(val, "Forward lightning");
-    normal_lightning_wave(val, 50);
-  } else if (val >= 256 && val < 512) {
-    show_config(val, "Backward lightning");
-    normal_lightning_wave(val - 256, 50, true);
-  } else if (val >= 512 && val < 768) {
-    show_config(val, "Inward lightning");
-    inward_lightning_wave(val - 512, 50);
-  } else if (val >= 786 && val < 1024) {
-    show_config(val, "Base colors");
-    if (val < 850) {
-      set_main(white);
-      set_accent(light_violet);
-    } else if (val >= 850 && val < 950) {
-      set_main(blue_gray);
-      set_accent(lighter_blue);
-    } else if (val >= 950 && val < 1000) {
-      set_main(brown_orange);
-      set_accent(red);
-    } else {
-      set_main(green);
-      set_accent(blue);
+void strobo() {
+  analogWrite(MAIN_R, 0);
+  analogWrite(MAIN_G, 0);
+  analogWrite(MAIN_B, 0);
+  analogWrite(ACC_R, 0);
+  analogWrite(ACC_G, 0);
+  analogWrite(ACC_B, 0);
+  int red = 0;
+  for (float j = 512; j > 16; j /= 1.1) {
+    for (int i = 0; i < 6; ++i) {
+      digitalWrite(lightning[i], HIGH);
+      delay(j);
+      digitalWrite(lightning[i], LOW);
     }
   }
+  analogWrite(MAIN_R, 255);
+  analogWrite(MAIN_G, 255);
+  analogWrite(MAIN_B, 255);
+  analogWrite(ACC_R, 255);
+  analogWrite(ACC_G, 0);
+  analogWrite(ACC_B, 0);
+  delay(200);
+  analogWrite(MAIN_R, 0);
+  analogWrite(MAIN_G, 0);
+  analogWrite(MAIN_B, 0);
+  analogWrite(ACC_R, 0);
+  analogWrite(ACC_G, 0);
+  analogWrite(ACC_B, 0);
   delay(1000);
+  analogWrite(MAIN_R, 0);
+  analogWrite(MAIN_G, 255);
+  analogWrite(MAIN_B, 0);
+  analogWrite(ACC_R, 255);
+  analogWrite(ACC_G, 0);
+  analogWrite(ACC_B, 255);
+  delay(200);
+  analogWrite(MAIN_R, 0);
+  analogWrite(MAIN_G, 0);
+  analogWrite(MAIN_B, 0);
+  analogWrite(ACC_R, 0);
+  analogWrite(ACC_G, 0);
+  analogWrite(ACC_B, 0);
+  delay(8000);
+}
+
+void loop() {
+  int val = analogRead(0);    // read the value from the sensor
+  int main_color[3] = {0, 255, 0};
+  int accent_color[3] = {0, 255, 0};
+  if (val > 900) {
+    strobo();
+  } else {
+    analogWrite(MAIN_R, 255);
+    analogWrite(MAIN_G, 255);
+    analogWrite(MAIN_B, 255);
+    analogWrite(ACC_R, 255);
+    analogWrite(ACC_G, 255);
+    analogWrite(ACC_B, 0);
+  }
+//  set_main(main_color);
+//  set_accent(accent_color);
+//  Serial.println(val);
+//  if ((oldVal > val && (oldVal - val) >= 30) || (val > oldVal && (val - oldVal) >= 30)) {
+//    oldVal = val;
+//    int main_color[3] = {255, 0, 0};
+//    int accent_color[3] = {255, 0, 0};
+//    set_main(main_color);
+//    set_accent(accent_color);
+//    Serial.print("Main: ");
+//    Serial.print("R: ");
+//    Serial.print(main_color[0]);
+//    Serial.print(" G: ");
+//    Serial.print(main_color[1]);
+//    Serial.print(" B: ");
+//    Serial.println(main_color[2]);
+//    Serial.print("Accent: ");
+//    Serial.print("R: ");
+//    Serial.print(accent_color[0]);
+//    Serial.print(" G: ");
+//    Serial.print(accent_color[1]);
+//    Serial.print(" B: ");
+//    Serial.println(accent_color[2]);
+//  }
+  
+//  if (val >= 0 && val < 256) {
+//    show_config(val, "Forward lightning");
+//    normal_lightning_wave(val, 50);
+//  } else if (val >= 256 && val < 512) {
+//    show_config(val, "Backward lightning");
+//    normal_lightning_wave(val - 256, 50, true);
+//  } else if (val >= 512 && val < 768) {
+//    show_config(val, "Inward lightning");
+//    inward_lightning_wave(val - 512, 50);
+//  } else if (val >= 786 && val < 1024) {
+//    show_config(val, "Base colors");
+//    if (val < 850) {
+//      set_main(white);
+//      set_accent(light_violet);
+//    } else if (val >= 850 && val < 950) {
+//      set_main(blue_gray);
+//      set_accent(lighter_blue);
+//    } else if (val >= 950 && val < 1000) {
+//      set_main(brown_orange);
+//      set_accent(red);
+//    } else {
+//      set_main(green);
+//      set_accent(blue);
+//    }
+//  }
 }
